@@ -10,6 +10,7 @@ import com.cloudsentinel.repository.UserRepository;
 import com.cloudsentinel.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,9 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class AuthService implements CommandLineRunner {
+
+    @Value("${app.init.enabled:true}")
+    private boolean initEnabled;
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -84,6 +88,10 @@ public class AuthService implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
+        if (!initEnabled) {
+            log.info("User seeding disabled (app.init.enabled=false)");
+            return;
+        }
         seedDefaultUsers();
     }
 

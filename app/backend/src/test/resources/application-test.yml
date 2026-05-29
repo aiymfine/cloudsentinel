@@ -1,3 +1,8 @@
+# Test profile — disables infrastructure initialization (no LocalStack in CI)
+app:
+  init:
+    enabled: false
+
 jwt:
   secret: dGVzdC1zZWNyZXQta2V5LWZvci1jaS1ydW5zLW9ubHktMTIzNDU2Nzg5MGFiY2RlZg==
 
