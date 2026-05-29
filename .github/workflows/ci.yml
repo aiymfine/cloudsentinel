@@ -32,7 +32,10 @@ jobs:
           cache: 'maven'
       
       - name: Run tests
-        run: ./mvnw test -B
+        run: |
+          chmod +x mvnw
+          sed -i 's/\r$//' mvnw
+          ./mvnw test -B
       
       - name: Build JAR
         run: ./mvnw package -B -DskipTests
@@ -110,7 +113,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+      
       - name: Validate Kubernetes manifests
-        uses: instrumenta/kubeval-action@master
-        with:
-          files: k8s
+        run: |
+          kubectl apply --dry-run=client -f k8s/namespace.yaml
+          kubectl apply --dry-run=client -f k8s/configmap.yaml
+          kubectl apply --dry-run=client -f k8s/secrets.yaml
+          kubectl apply --dry-run=client -f k8s/serviceaccount.yaml
+          kubectl apply --dry-run=client -f k8s/localstack.yaml
+          kubectl apply --dry-run=client -f k8s/backend.yaml
+          kubectl apply --dry-run=client -f k8s/frontend.yaml
+          kubectl apply --dry-run=client -f k8s/prometheus.yaml
+          kubectl apply --dry-run=client -f k8s/grafana.yaml
+          kubectl apply --dry-run=client -f k8s/grafana-config.yaml
+          kubectl apply --dry-run=client -f k8s/networkpolicy.yaml
