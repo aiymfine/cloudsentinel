@@ -101,16 +101,6 @@ export default function Login() {
             transition={{ delay: 0.6 }}
             className="mt-6 text-center"
           >
-            <div className="glass p-3 mb-4">
-              <p className="text-xs text-slate-400 mb-1">Demo accounts:</p>
-              <div className="flex flex-wrap justify-center gap-2 text-xs">
-                <span className="text-blue-400">viewer / viewer123</span>
-                <span className="text-slate-600">•</span>
-                <span className="text-amber-400">editor / editor123</span>
-                <span className="text-slate-600">•</span>
-                <span className="text-red-400">admin / admin123</span>
-              </div>
-            </div>
             <p className="text-sm text-slate-400">
               Don't have an account?{' '}
               <Link to="/register" className="text-sentinel-400 hover:underline">Create one</Link>
