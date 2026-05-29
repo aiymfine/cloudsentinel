@@ -53,7 +53,7 @@ public class DocumentController {
     }
 
     @GetMapping("/download")
-    @PreAuthorize("hasAnyRole('VIEWER','EDITOR','ADMIN')")
+    @PreAuthorize("hasAnyRole('EDITOR','ADMIN')")
     @Operation(summary = "Download a document")
     public ResponseEntity<byte[]> downloadFile(@RequestParam String key) {
         String username = getCurrentUsername();
@@ -65,7 +65,7 @@ public class DocumentController {
     }
 
     @GetMapping("/preview")
-    @PreAuthorize("hasAnyRole('VIEWER','EDITOR','ADMIN')")
+    @PreAuthorize("hasAnyRole('EDITOR','ADMIN')")
     @Operation(summary = "Preview a document")
     public ResponseEntity<byte[]> previewFile(@RequestParam String key) {
         String username = getCurrentUsername();

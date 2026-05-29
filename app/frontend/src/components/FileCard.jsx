@@ -25,7 +25,7 @@ function formatSize(bytes) {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i]
 }
 
-export default function FileCard({ file, onDelete, onDownload, onPreview, canDelete, canUpload }) {
+export default function FileCard({ file, onDelete, onDownload, onPreview, canDelete, canUpload, canDownload }) {
   const Icon = getFileIcon(file.contentType)
 
   return (
@@ -44,14 +44,16 @@ export default function FileCard({ file, onDelete, onDownload, onPreview, canDel
             <Icon className="w-5 h-5 text-sentinel-400" />
           </div>
           <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            {file.contentType?.startsWith('image/') && (
+            {canDownload && file.contentType?.startsWith('image/') && (
               <button onClick={() => onPreview?.(file)} className="p-1.5 rounded-lg hover:bg-white/10 transition-colors" title="Preview">
                 <Eye className="w-4 h-4 text-slate-400" />
               </button>
             )}
-            <button onClick={() => onDownload?.(file)} className="p-1.5 rounded-lg hover:bg-white/10 transition-colors" title="Download">
-              <Download className="w-4 h-4 text-sentinel-400" />
-            </button>
+            {canDownload && (
+              <button onClick={() => onDownload?.(file)} className="p-1.5 rounded-lg hover:bg-white/10 transition-colors" title="Download">
+                <Download className="w-4 h-4 text-sentinel-400" />
+              </button>
+            )}
             {canDelete && (
               <button onClick={() => onDelete?.(file)} className="p-1.5 rounded-lg hover:bg-red-500/20 transition-colors" title="Delete">
                 <Trash2 className="w-4 h-4 text-red-400" />

@@ -18,6 +18,7 @@ export default function Dashboard() {
 
   const canUpload = user?.role === 'EDITOR' || user?.role === 'ADMIN'
   const canDelete = user?.role === 'ADMIN'
+  const canDownload = user?.role === 'EDITOR' || user?.role === 'ADMIN'
 
   const loadFiles = useCallback(async () => {
     try {
@@ -144,7 +145,7 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           <AnimatePresence>
             {files.map(file => (
-              <FileCard key={file.id} file={file} canDelete={canDelete} canUpload={canUpload}
+              <FileCard key={file.id} file={file} canDelete={canDelete} canUpload={canUpload} canDownload={canDownload}
                 onDelete={handleDelete} onDownload={handleDownload} onPreview={setPreviewFile} />
             ))}
           </AnimatePresence>
@@ -175,7 +176,9 @@ export default function Dashboard() {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex justify-end gap-2">
-                      <button onClick={() => handleDownload(file)} className="btn-ghost py-1 px-3 text-xs">Download</button>
+                      {canDownload && (
+                        <button onClick={() => handleDownload(file)} className="btn-ghost py-1 px-3 text-xs">Download</button>
+                      )}
                       {canDelete && (
                         <button onClick={() => handleDelete(file)} className="btn-danger py-1 px-3 text-xs">Delete</button>
                       )}
