@@ -1,0 +1,13 @@
+jwt:
+  secret: dGVzdC1zZWNyZXQta2V5LWZvci1jaS1ydW5zLW9ubHktMTIzNDU2Nzg5MGFiY2RlZg==
+
+aws:
+  endpoint: http://localhost:4566
+  region: us-east-1
+  access-key-id: test
+  secret-access-key: test
+  s3:
+    bucket-name: cloud-sentinel-docs
+  dynamodb:
+    users-table: cloud-sentinel-users
+    audit-table: cloud-sentinel-audit

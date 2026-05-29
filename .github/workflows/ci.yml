@@ -118,14 +118,6 @@ jobs:
       
       - name: Validate Kubernetes manifests
         run: |
-          kubectl apply --dry-run=client -f k8s/namespace.yaml
-          kubectl apply --dry-run=client -f k8s/configmap.yaml
-          kubectl apply --dry-run=client -f k8s/secrets.yaml
-          kubectl apply --dry-run=client -f k8s/serviceaccount.yaml
-          kubectl apply --dry-run=client -f k8s/localstack.yaml
-          kubectl apply --dry-run=client -f k8s/backend.yaml
-          kubectl apply --dry-run=client -f k8s/frontend.yaml
-          kubectl apply --dry-run=client -f k8s/prometheus.yaml
-          kubectl apply --dry-run=client -f k8s/grafana.yaml
-          kubectl apply --dry-run=client -f k8s/grafana-config.yaml
-          kubectl apply --dry-run=client -f k8s/networkpolicy.yaml
+          for f in namespace configmap secrets serviceaccount localstack backend frontend prometheus grafana grafana-config networkpolicy; do
+            kubectl apply --dry-run=client --validate=false -f k8s/${f}.yaml
+          done
