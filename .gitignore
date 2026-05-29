@@ -1,39 +1,47 @@
-# Environment variables (use .env.example for template)
-.env
-.env.local
+# Build
+target/
+!.mvn/wrapper/maven-wrapper.jar
 
 # IDE
 .idea/
 *.iml
 .vscode/
 .settings/
-.classpath
 .project
-
-# Build
-target/
-build/
-dist/
-node_modules/
+.classpath
+*.swp
+*.swo
+*~
 
 # OS
 .DS_Store
 Thumbs.db
+desktop.ini
 
-# Terraform
-terraform/.terraform/
-terraform/*.tfstate
-terraform/*.tfstate.*
-terraform/.terraform.lock.hcl
-terraform/tfplan
+# Docker
+*.tar
+*.tar.gz
+
+# Node
+node_modules/
+dist/
+.env
+.env.local
 
 # Logs
 *.log
 
-# Docker
-*.tar
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
 
-# Sensitive
-*.pem
-*.key
-!k8s/secrets.yaml
+# Misc
+*.bak
+*.tmp

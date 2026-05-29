@@ -283,34 +283,6 @@ Prometheus scrapes Spring Boot Actuator metrics at `http://backend:8080/actuator
 | Dashboards | Grafana | latest |
 | CI/CD | GitHub Actions | — |
 
-## 📸 Screenshots
-
-<details>
-<summary>Click to expand screenshots</summary>
-
-### 1. Docker Containers Running
-All 5 containers healthy and running via `docker compose ps`
-
-### 2. Frontend — Login Page
-Glassmorphism dark-themed login with form validation
-
-### 3. Frontend — Dashboard (Admin)
-File management grid with upload, download, delete actions
-
-### 4. Frontend — Admin Panel
-User management, audit logs, and dashboard statistics
-
-### 5. Swagger API Documentation
-Interactive API docs at `/api/swagger-ui.html` with all endpoints
-
-### 6. Prometheus Targets
-Scrape target `backend:8080` showing **UP** status
-
-### 7. Grafana Dashboard
-Pre-configured monitoring dashboard connected to Prometheus
-
-</details>
-
 ## 🔄 CI/CD Pipeline
 
 The GitHub Actions pipeline runs on every push and PR:
