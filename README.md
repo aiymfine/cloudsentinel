@@ -171,7 +171,7 @@ kubectl apply -k k8s/
 | 🔧 **Backend API** | http://localhost:8080 | REST API |
 | 📖 **Swagger UI** | http://localhost:8080/api/swagger-ui.html | Interactive API docs |
 | 📊 **Prometheus** | http://localhost:9090 | Metrics scraper (target: `backend:8080`) |
-| 📈 **Grafana** | http://localhost:3000 | Dashboards (`admin` / `admin`) |
+| 📈 **Grafana** | http://localhost:3000 | `admin` / `admin123` |
 | ☁️ **LocalStack** | http://localhost:4566 | AWS emulation |
 | ❤️ **Health** | http://localhost:8080/actuator/health | Backend health check |
 
