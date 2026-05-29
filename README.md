@@ -11,87 +11,91 @@
 
 ## 🛡️ Overview
 
-CloudSentinel is a secure, cloud-native document management system built as a final project demonstrating enterprise-grade infrastructure practices. It features Role-Based Access Control (RBAC), Infrastructure as Code (IaC), container orchestration, and full observability.
+CloudSentinel is a secure, cloud-native document management system demonstrating enterprise-grade infrastructure practices. It features Role-Based Access Control (RBAC) with 3 distinct tiers, JWT authentication, Infrastructure as Code (IaC), container orchestration with Docker and Kubernetes, and full observability with Prometheus + Grafana.
 
 ### ✨ Features
 
-| Feature | Description |
-|---------|-------------|
-| 🔐 **RBAC Security** | 3-tier role system (Viewer/Editor/Admin) with JWT authentication |
-| ☁️ **Cloud Storage** | S3-compatible document storage via LocalStack |
-| 📊 **DynamoDB** | NoSQL user management and audit logging |
-| 🏗️ **Infrastructure as Code** | Full Terraform provisioning |
-| 🐳 **Docker** | Multi-stage builds with non-root security |
-| ☸️ **Kubernetes** | HA deployment with 2+ replicas |
-| 📈 **Monitoring** | Prometheus + Grafana dashboards |
-| 🔒 **Network Policies** | Zero-trust pod networking |
-| 📖 **API Documentation** | Auto-generated Swagger/OpenAPI |
-| 🎨 **Modern UI** | Dark-themed React frontend with glassmorphism |
-| 📝 **Audit Logging** | Complete activity tracking |
-| 🚦 **Rate Limiting** | API rate protection |
-| 🔄 **CI/CD** | GitHub Actions pipeline |
+- 🔐 **3-Tier RBAC** — Viewer (read-only), Editor (upload), Admin (full control)
+- ☁️ **AWS S3 Storage** — S3-compatible document storage via LocalStack
+- 📊 **DynamoDB** — NoSQL user management and audit logging
+- 🔑 **JWT Authentication** — Stateless auth with BCrypt password hashing
+- 🏗️ **Infrastructure as Code** — Terraform provisioning for AWS resources
+- 🐳 **Docker** — Multi-stage builds with non-root containers
+- ☸️ **Kubernetes** — Production manifests with NetworkPolicies
+- 📈 **Prometheus + Grafana** — Real-time metrics and dashboards
+- 🔒 **Network Policies** — Zero-trust pod-to-pod traffic control
+- 📖 **Swagger/OpenAPI** — Auto-generated interactive API docs
+- 🎨 **Modern UI** — Dark-themed React frontend with glassmorphism design
+- 📝 **Audit Logging** — Complete activity tracking for all operations
+- 🚦 **CI/CD** — GitHub Actions pipeline with build, test, validate, and deploy
 
 ## 🏗️ Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                    Kubernetes Cluster                     │
+│                    Docker / Kubernetes Cluster             │
 │                                                          │
 │  ┌──────────┐   ┌──────────────┐   ┌──────────────────┐ │
 │  │ Frontend  │──▶│   Backend    │──▶│   LocalStack     │ │
-│  │ (React +  │   │ (Spring Boot │   │ (S3 + DynamoDB + │ │
-│  │  Nginx)   │   │  + Security) │   │  IAM + STS)      │ │
-│  │  2 pods   │   │   2 pods     │   │   1 pod          │ │
+│  │ (React +  │   │ (Spring Boot │   │  S3 + DynamoDB   │ │
+│  │  Nginx)   │   │  Security)   │   │  IAM + STS        │ │
+│  │ :80       │   │ :8080        │   │  :4566            │ │
 │  └──────────┘   └──────┬───────┘   └──────────────────┘ │
 │                        │                                  │
 │                        ▼                                  │
 │              ┌──────────────────┐                        │
-│              │   Prometheus     │◀── Scrape /metrics     │
-│              │   + Grafana      │                        │
+│              │   Prometheus     │◀── Scrape /actuator    │
+│              │   :9090          │    /prometheus          │
+│              ├──────────────────┤                        │
+│              │   Grafana        │                        │
+│              │   :3000          │                        │
 │              └──────────────────┘                        │
 │                                                          │
 │  ┌─────────────────────────────────────────────────────┐ │
-│  │  Network Policies │ Secrets │ ConfigMaps │ RBAC     │ │
+│  │  NetworkPolicies │ Secrets │ ConfigMaps │ RBAC      │ │
 │  └─────────────────────────────────────────────────────┘ │
 └─────────────────────────────────────────────────────────┘
-         ▲
-         │ Terraform provisions resources
-         │ in LocalStack (S3, DynamoDB, IAM)
 ```
 
 ## 📁 Repository Structure
 
 ```
 cloudsentinel/
-├── terraform/              # IaC - LocalStack resource provisioning
-│   ├── main.tf            # S3, DynamoDB, IAM resources
+├── terraform/              # IaC — LocalStack resource provisioning
+│   ├── main.tf            # S3 bucket, DynamoDB tables, IAM policies
 │   ├── providers.tf       # AWS provider config for LocalStack
 │   ├── variables.tf       # Input variables
-│   ├── outputs.tf         # Output values
-│   └── backend.tf         # State backend config
+│   └── outputs.tf         # Output values
 ├── app/
-│   ├── backend/           # Spring Boot application
-│   │   ├── src/           # Java source code
+│   ├── backend/           # Spring Boot REST API
+│   │   ├── src/main/java/com/cloudsentinel/
+│   │   │   ├── config/       # SecurityConfig, AwsConfig
+│   │   │   ├── controller/    # REST endpoints (Auth, Documents, Admin)
+│   │   │   ├── security/      # JWT filter, token provider
+│   │   │   ├── service/       # S3Service, AuthService, AuditService
+│   │   │   ├── model/         # DocumentMetadata
+│   │   │   └── dto/           # Request/Response DTOs
 │   │   ├── Dockerfile     # Multi-stage, non-root build
 │   │   └── pom.xml        # Maven dependencies
-│   └── frontend/          # React application
-│       ├── src/           # React source code
+│   └── frontend/          # React SPA
+│       ├── src/           # React components, pages, services
 │       ├── Dockerfile     # Multi-stage build with Nginx
 │       └── package.json   # Node dependencies
 ├── k8s/                   # Kubernetes manifests
 │   ├── namespace.yaml     # Namespace definition
-│   ├── configmap.yaml     # App configuration
-│   ├── secrets.yaml       # Sensitive credentials
+│   ├── configmap.yaml     # Application configuration
+│   ├── secrets.yaml       # Credentials (CHANGE_ME placeholders)
+│   ├── secrets.example.yaml # Example with LocalStack defaults
 │   ├── serviceaccount.yaml # Least-privilege service account
-│   ├── localstack.yaml    # LocalStack deployment
-│   ├── backend.yaml       # Backend deployment (2 replicas)
-│   ├── frontend.yaml      # Frontend deployment (2 replicas)
-│   ├── prometheus.yaml    # Prometheus deployment
-│   ├── grafana.yaml       # Grafana deployment
+│   ├── localstack.yaml    # LocalStack StatefulSet
+│   ├── backend.yaml       # Backend Deployment + Service (2 replicas)
+│   ├── frontend.yaml      # Frontend Deployment + Service (2 replicas)
+│   ├── prometheus.yaml    # Prometheus Deployment + Service
+│   ├── grafana.yaml       # Grafana Deployment + Service
 │   ├── networkpolicy.yaml # Network security policies
-│   └── kustomization.yaml # Kustomize config
+│   └── kustomization.yaml # Kustomize overlay
 ├── monitoring/
-│   ├── prometheus.yml     # Prometheus scrape config
+│   ├── prometheus.yml     # Prometheus scrape configuration
 │   └── grafana/
 │       └── dashboards/    # Pre-configured Grafana dashboards
 ├── scripts/
@@ -99,9 +103,10 @@ cloudsentinel/
 │   ├── setup.ps1          # Windows PowerShell setup script
 │   ├── deploy-k8s.sh      # Kubernetes deployment script
 │   └── teardown.sh        # Cleanup script
-├── .github/workflows/     # CI/CD pipeline
+├── .github/workflows/
+│   └── ci.yml             # CI/CD pipeline
 ├── docker-compose.yml     # Local development environment
-└── README.md              # This file
+└── README.md
 ```
 
 ## 🚀 Quick Start
@@ -109,41 +114,39 @@ cloudsentinel/
 ### Prerequisites
 
 - [Docker](https://www.docker.com/) 20+
-- [Terraform](https://www.terraform.io/) 1.0+
-- [kubectl](https://kubernetes.io/docs/tasks/tools/) (for K8s deployment)
-- [kind](https://kind.sigs.k8s.io/) (for local K8s cluster)
+- [Terraform](https://www.terraform.io/) 1.0+ (optional, for IaC demo)
+- [kubectl](https://kubernetes.io/docs/tasks/tools/) + [kind](https://kind.sigs.k8s.io/) (optional, for K8s deployment)
 
-### Option 1: Docker Compose (Recommended for Development)
+### Docker Compose (Development)
 
 ```bash
 # Clone the repository
 git clone https://github.com/aiymfine/cloudsentinel.git
 cd cloudsentinel
 
-# Run the setup script
-# Linux/Mac:
-chmod +x scripts/setup.sh && ./scripts/setup.sh
-
-# Windows PowerShell:
-.\scripts\setup.ps1
+# Build and start all 5 containers
+docker compose up -d --build
 ```
 
-Or manually:
-```bash
-# Build and start everything
-docker compose up -d --build
+That's it. The stack includes:
+- **Backend** (Spring Boot) — port 8080
+- **Frontend** (React + Nginx) — port 80
+- **LocalStack** (S3 + DynamoDB) — port 4566
+- **Prometheus** — port 9090
+- **Grafana** — port 3000
 
-# Provision cloud resources
+### Terraform (Provision Cloud Resources)
+
+```bash
 cd terraform
 terraform init
 terraform apply -auto-approve
-cd ..
 ```
 
-### Option 2: Kubernetes (Production-like)
+### Kubernetes (Production-like)
 
 ```bash
-# Create kind cluster with port mappings
+# Create local cluster
 kind create cluster --name cloudsentinel --config=- <<EOF
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
@@ -156,146 +159,171 @@ nodes:
         hostPort: 3000
 EOF
 
-# Deploy
-chmod +x scripts/deploy-k8s.sh && ./scripts/deploy-k8s.sh
+# Deploy all resources
+kubectl apply -k k8s/
 ```
 
-### Access the Application
+## 🔗 Access Points
 
-| Service | URL | Credentials |
-|---------|-----|-------------|
-| 📱 Frontend | http://localhost | - |
-| 🔧 Backend API | http://localhost:8080 | - |
-| 📖 Swagger UI | http://localhost:8080/api/swagger-ui.html | - |
-| 📊 Prometheus | http://localhost:9090 | - |
-| 📈 Grafana | http://localhost:3000 | admin / admin |
-| ☁️ LocalStack | http://localhost:4566 | - |
+| Service | URL | Notes |
+|---------|-----|-------|
+| 📱 **Frontend** | http://localhost | Main application UI |
+| 🔧 **Backend API** | http://localhost:8080 | REST API |
+| 📖 **Swagger UI** | http://localhost:8080/api/swagger-ui.html | Interactive API docs |
+| 📊 **Prometheus** | http://localhost:9090 | Metrics scraper (target: `backend:8080`) |
+| 📈 **Grafana** | http://localhost:3000 | Dashboards (`admin` / `admin`) |
+| ☁️ **LocalStack** | http://localhost:4566 | AWS emulation |
+| ❤️ **Health** | http://localhost:8080/actuator/health | Backend health check |
 
-### Default Users
+## 👥 Default Users
 
-| Username | Password | Role | Access |
-|----------|----------|------|--------|
-| `admin` | `admin123` | ADMIN | Full access + sensitive endpoints |
-| `editor` | `editor123` | EDITOR | View + upload files |
-| `viewer` | `viewer123` | VIEWER | View files only |
+| Username | Password | Role | Permissions |
+|----------|----------|------|-------------|
+| `admin` | `admin123` | **ADMIN** | Full access — list, upload, download, delete, admin panel, audit logs, sensitive endpoint |
+| `editor` | `editor123` | **EDITOR** | View files + upload files |
+| `viewer` | `viewer123` | **VIEWER** | View file list only |
 
-## 🔐 Security Features
+## 🔐 Security Architecture
 
-### RBAC Roles
+### RBAC Matrix
 
-| Role | List Files | Upload Files | Delete Files | Admin Panel |
-|------|-----------|-------------|-------------|-------------|
-| VIEWER | ✅ | ❌ | ❌ | ❌ |
-| EDITOR | ✅ | ✅ | ❌ | ❌ |
-| ADMIN | ✅ | ✅ | ✅ | ✅ |
+| Action | VIEWER | EDITOR | ADMIN |
+|--------|--------|--------|-------|
+| List documents | ✅ | ✅ | ✅ |
+| Upload documents | ❌ | ✅ | ✅ |
+| Download documents | ❌ | ✅ | ✅ |
+| Delete documents | ❌ | ❌ | ✅ |
+| Admin panel | ❌ | ❌ | ✅ |
+| Manage users | ❌ | ❌ | ✅ |
+| View audit logs | ❌ | ❌ | ✅ |
+| Sensitive endpoint | ❌ | ❌ | ✅ |
 
 ### Security Measures
 
-- **JWT Authentication** with configurable expiration
-- **BCrypt Password Hashing** (cost factor 12)
-- **Non-root Docker containers** (dedicated system user)
-- **Kubernetes Secrets** for all sensitive data
-- **Network Policies** restricting pod-to-pod traffic
-- **Least-Privilege ServiceAccount** (RBAC)
-- **S3 Bucket Encryption** (AES256)
-- **S3 Public Access Block** enabled
-- **Audit Logging** of all state-changing operations
+- **JWT Authentication** — HS256 signed tokens with configurable expiration
+- **BCrypt Password Hashing** — Industry-standard salted hashing
+- **Non-root Docker Containers** — Dedicated `cloudsentinel` system user
+- **Kubernetes Secrets** — All credentials stored in K8s Secrets (not ConfigMaps)
+- **NetworkPolicies** — Restrict pod-to-pod traffic (backend ↔ LocalStack only)
+- **Least-Privilege ServiceAccount** — No default cluster permissions
+- **S3 Bucket Encryption** — AES256 server-side encryption
+- **S3 Public Access Block** — Explicit public access prevention
+- **Audit Logging** — All state-changing operations tracked in DynamoDB
+- **Sensitive Endpoint** — Admin-only endpoint demonstrating RBAC enforcement
 
 ## 📊 Monitoring
 
-### Prometheus Metrics
+### Prometheus Scraping
 
-- `auth_failures_total` — Authorization failure counter
-- `http_server_requests_seconds` — Request latency histogram
-- `jvm_memory_used_bytes` — JVM memory usage
-- `process_uptime_seconds` — Application uptime
+Prometheus scrapes Spring Boot Actuator metrics at `http://backend:8080/actuator/prometheus` every 15 seconds. Key metrics include:
 
-### Grafana Dashboards
+| Metric | Description |
+|--------|-------------|
+| `auth_failures_total` | Count of JWT/authentication failures |
+| `http_server_requests_seconds` | Request latency histogram |
+| `jvm_memory_used_bytes` | JVM heap usage |
+| `process_uptime_seconds` | Application uptime |
 
-Pre-configured dashboard includes:
-- Authorization failures over time
-- HTTP request rate by status code
-- Request latency (p50, p95, p99)
-- JVM memory usage
-- S3 operation counts
-- Application uptime
+## 📝 API Reference
+
+### Authentication
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| POST | `/api/auth/register` | ❌ | Register new user |
+| POST | `/api/auth/login` | ❌ | Login → JWT token |
+| GET | `/api/auth/me` | ✅ | Current user profile |
+
+### Documents
+
+| Method | Endpoint | Role | Description |
+|--------|----------|------|-------------|
+| GET | `/api/documents` | ALL | List all files |
+| POST | `/api/documents/upload` | EDITOR+ | Upload file (multipart) |
+| GET | `/api/documents/download?key=` | EDITOR+ | Download file by S3 key |
+| GET | `/api/documents/preview?key=` | EDITOR+ | Preview file by S3 key |
+| DELETE | `/api/documents?key=` | ADMIN | Delete file by S3 key |
+
+### Admin
+
+| Method | Endpoint | Role | Description |
+|--------|----------|------|-------------|
+| GET | `/api/admin/users` | ADMIN | List all users |
+| PUT | `/api/admin/users/{id}/role` | ADMIN | Change user role |
+| GET | `/api/admin/audit-logs` | ADMIN | View audit trail |
+| GET | `/api/admin/dashboard` | ADMIN | Dashboard statistics |
+| GET | `/api/admin/sensitive` | ADMIN | Sensitive data endpoint |
+
+### Health & Metrics
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | `/actuator/health` | ❌ | Backend health check |
+| GET | `/actuator/prometheus` | ❌ | Prometheus metrics |
+| GET | `/actuator/info` | ❌ | Application info |
 
 ## 🛠️ Technology Stack
 
-| Component | Technology | Version |
-|-----------|-----------|---------|
-| Backend | Spring Boot | 3.2.x |
-| Security | Spring Security + JWT | - |
-| Frontend | React + Vite | 18.x |
+| Layer | Technology | Version |
+|-------|-----------|---------|
+| Backend Framework | Spring Boot | 3.2.5 |
+| Language | Java | 21 |
+| Security | Spring Security + JWT (jjwt) | 0.12.5 |
+| Frontend Framework | React | 18.x |
+| Build Tool | Vite | 5.x |
 | Styling | Tailwind CSS | 3.x |
-| Cloud Emulation | LocalStack | latest |
-| Storage | S3 (via LocalStack) | - |
-| Database | DynamoDB (via LocalStack) | - |
+| Animations | Framer Motion | — |
+| Cloud Emulation | LocalStack | 3.7 |
+| Object Storage | AWS S3 (via LocalStack) | — |
+| NoSQL Database | DynamoDB (via LocalStack) | — |
 | IaC | Terraform | 1.14+ |
-| Containers | Docker | 20+ |
-| Orchestration | Kubernetes | 1.28+ |
-| Monitoring | Prometheus + Grafana | latest |
-| CI/CD | GitHub Actions | - |
+| Containerization | Docker (multi-stage builds) | — |
+| Orchestration | Kubernetes + Kustomize | 1.28+ |
+| Metrics | Micrometer + Prometheus | — |
+| Dashboards | Grafana | latest |
+| CI/CD | GitHub Actions | — |
 
-## 📝 API Endpoints
+## 📸 Screenshots
 
-### Authentication
-- `POST /api/auth/register` — Register new user
-- `POST /api/auth/login` — Login and get JWT
-- `GET /api/auth/me` — Get current user info
+<details>
+<summary>Click to expand screenshots</summary>
 
-### Documents
-- `GET /api/documents` — List all files (VIEWER+)
-- `POST /api/documents/upload` — Upload file (EDITOR+)
-- `GET /api/documents/{key}/download` — Download file (VIEWER+)
-- `GET /api/documents/{key}/preview` — Preview file (VIEWER+)
-- `DELETE /api/documents/{key}` — Delete file (ADMIN)
+### 1. Docker Containers Running
+All 5 containers healthy and running via `docker compose ps`
 
-### Admin
-- `GET /api/admin/users` — List all users (ADMIN)
-- `PUT /api/admin/users/{id}/role` — Change user role (ADMIN)
-- `GET /api/admin/audit-logs` — View audit logs (ADMIN)
-- `GET /api/admin/dashboard` — Dashboard stats (ADMIN)
-- `GET /api/admin/sensitive` — Sensitive endpoint (ADMIN)
+### 2. Frontend — Login Page
+Glassmorphism dark-themed login with form validation
 
-### Monitoring
-- `GET /actuator/health` — Health check
-- `GET /actuator/prometheus` — Prometheus metrics
-- `GET /api/health` — Application health
+### 3. Frontend — Dashboard (Admin)
+File management grid with upload, download, delete actions
 
-## 👨‍💻 Development
+### 4. Frontend — Admin Panel
+User management, audit logs, and dashboard statistics
 
-### Backend (Spring Boot)
+### 5. Swagger API Documentation
+Interactive API docs at `/api/swagger-ui.html` with all endpoints
 
-```bash
-cd app/backend
-./mvnw spring-boot:run
-```
+### 6. Prometheus Targets
+Scrape target `backend:8080` showing **UP** status
 
-### Frontend (React)
+### 7. Grafana Dashboard
+Pre-configured monitoring dashboard connected to Prometheus
 
-```bash
-cd app/frontend
-npm install
-npm run dev
-```
+</details>
 
-### Terraform
+## 🔄 CI/CD Pipeline
 
-```bash
-cd terraform
-terraform init
-terraform plan
-terraform apply
-```
+The GitHub Actions pipeline runs on every push and PR:
+
+1. **Build Backend** — Maven build with dependency caching
+2. **Build Frontend** — npm install + Vite build
+3. **Run Tests** — JUnit tests with test profile (no AWS calls)
+4. **Validate K8s** — YAML syntax validation via Python
+5. **Push to GHCR** — Docker images to GitHub Container Registry
 
 ## 📜 License
 
 This project is licensed under the MIT License.
-
-## 🙏 Credits
-
-Built as a final exam project for **IT Infrastructure** course demonstrating secure cloud-native architecture patterns.
 
 ---
 
