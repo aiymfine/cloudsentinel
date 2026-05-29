@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  packages: write
+
 env:
   REGISTRY: ghcr.io
   IMAGE_PREFIX: ${{ github.repository }}
@@ -40,7 +43,7 @@ jobs:
       - name: Push to GHCR
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
-          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
           docker tag cloud-sentinel-backend ghcr.io/${{ env.IMAGE_PREFIX }}/backend:latest
           docker push ghcr.io/${{ env.IMAGE_PREFIX }}/backend:latest
 
@@ -73,7 +76,7 @@ jobs:
       - name: Push to GHCR
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
-          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
           docker tag cloud-sentinel-frontend ghcr.io/${{ env.IMAGE_PREFIX }}/frontend:latest
           docker push ghcr.io/${{ env.IMAGE_PREFIX }}/frontend:latest
 
