@@ -1,0 +1,43 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: cloud-sentinel
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
+
+aws:
+  endpoint: http://localhost:4566
+  region: us-east-1
+  access-key-id: test
+  secret-access-key: test
+  s3:
+    bucket-name: cloud-sentinel-docs
+  dynamodb:
+    users-table: cloud-sentinel-users
+    audit-table: cloud-sentinel-audit
+
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: 86400000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  metrics:
+    tags:
+      application: cloud-sentinel
+  endpoint:
+    health:
+      show-details: always
+
+springdoc:
+  api-docs:
+    path: /api/docs
+  swagger-ui:
+    path: /api/swagger-ui.html

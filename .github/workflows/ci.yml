@@ -1,0 +1,113 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ${{ github.repository }}
+
+jobs:
+  # ─── Build & Test Backend ───
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app/backend
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+      
+      - name: Run tests
+        run: ./mvnw test -B
+      
+      - name: Build JAR
+        run: ./mvnw package -B -DskipTests
+      
+      - name: Build Docker image
+        run: docker build -t cloud-sentinel-backend:latest .
+      
+      - name: Push to GHCR
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
+          docker tag cloud-sentinel-backend ghcr.io/${{ env.IMAGE_PREFIX }}/backend:latest
+          docker push ghcr.io/${{ env.IMAGE_PREFIX }}/backend:latest
+
+  # ─── Build Frontend ───
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app/frontend
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: app/frontend/package.json
+      
+      - name: Install dependencies
+        run: npm install
+      
+      - name: Build
+        run: npm run build
+      
+      - name: Build Docker image
+        run: docker build -t cloud-sentinel-frontend:latest .
+      
+      - name: Push to GHCR
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
+          docker tag cloud-sentinel-frontend ghcr.io/${{ env.IMAGE_PREFIX }}/frontend:latest
+          docker push ghcr.io/${{ env.IMAGE_PREFIX }}/frontend:latest
+
+  # ─── Terraform Validation ───
+  terraform:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: terraform
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: '~1.7'
+      
+      - name: Terraform Init
+        run: terraform init -backend=false
+      
+      - name: Terraform Format
+        run: terraform fmt -check
+      
+      - name: Terraform Validate
+        run: terraform validate
+
+  # ─── Kubernetes Manifest Validation ───
+  k8s-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Validate Kubernetes manifests
+        uses: instrumenta/kubeval-action@master
+        with:
+          files: k8s

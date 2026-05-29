@@ -1,0 +1,23 @@
+# ─── Kustomize helper ───
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - namespace.yaml
+  - configmap.yaml
+  - secrets.yaml
+  - serviceaccount.yaml
+  - localstack.yaml
+  - backend.yaml
+  - frontend.yaml
+  - prometheus.yaml
+  - grafana.yaml
+  - grafana-config.yaml
+  - networkpolicy.yaml
+
+# Apply the Grafana dashboard configmap
+configMapGenerator:
+  - name: grafana-dashboard-cloudsentinel
+    namespace: cloud-sentinel
+    files:
+      - cloudsentinel-dashboard.json=../monitoring/grafana/dashboards/cloudsentinel-dashboard.json

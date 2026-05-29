@@ -1,0 +1,109 @@
+services:
+  # ─── LocalStack (AWS Emulation) ───
+  localstack:
+    image: localstack/localstack:3.7
+    container_name: cloudsentinel-localstack
+    ports:
+      - "4566:4566"
+      - "4510-4559:4510-4559"
+    environment:
+      - SERVICES=s3,dynamodb,iam,sts
+      - DEFAULT_REGION=us-east-1
+      - DEBUG=0
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    volumes:
+      - localstack-data:/var/lib/localstack
+      - /var/run/docker.sock:/var/run/docker.sock
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - cloudsentinel
+
+  # ─── Backend (Spring Boot) ───
+  backend:
+    build:
+      context: ./app/backend
+      dockerfile: Dockerfile
+    container_name: cloudsentinel-backend
+    ports:
+      - "8080:8080"
+    environment:
+      - AWS_ENDPOINT=http://localstack:4566
+      - AWS_REGION=us-east-1
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - AWS_S3_BUCKET=cloud-sentinel-docs
+      - AWS_DYNAMODB_USERS_TABLE=cloud-sentinel-users
+      - AWS_DYNAMODB_AUDIT_TABLE=cloud-sentinel-audit
+      - JWT_SECRET=bXlTdXBlclNlY3JldEtleUZvckpXVFRva2VuVGhhdElzTG9uZ0Vub3VnaA==
+    depends_on:
+      localstack:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 30s
+    networks:
+      - cloudsentinel
+
+  # ─── Frontend (React + Nginx) ───
+  frontend:
+    build:
+      context: ./app/frontend
+      dockerfile: Dockerfile
+    container_name: cloudsentinel-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - cloudsentinel
+
+  # ─── Prometheus ───
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: cloudsentinel-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.retention.time=7d'
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - cloudsentinel
+
+  # ─── Grafana ───
+  grafana:
+    image: grafana/grafana:latest
+    container_name: cloudsentinel-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_AUTH_ANONYMOUS_ENABLED=false
+    volumes:
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    networks:
+      - cloudsentinel
+
+volumes:
+  localstack-data:
+  grafana-data:
+
+networks:
+  cloudsentinel:
+    driver: bridge

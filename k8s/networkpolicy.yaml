@@ -1,0 +1,75 @@
+# ─── Network Policy: Only app pods can talk to LocalStack ───
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: localstack-access
+  namespace: cloud-sentinel
+  labels:
+    app.kubernetes.io/name: cloud-sentinel
+spec:
+  podSelector:
+    matchLabels:
+      app: localstack
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: backend
+      ports:
+        - port: 4566
+          protocol: TCP
+    - from:
+        - podSelector:
+            matchLabels:
+              app: terraform-job
+      ports:
+        - port: 4566
+          protocol: TCP
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: backend
+      ports:
+        - port: 8080
+          protocol: TCP
+    - to: []
+      ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+---
+# Deny all ingress to backend by default, only allow from frontend
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: backend-access
+  namespace: cloud-sentinel
+  labels:
+    app.kubernetes.io/name: cloud-sentinel
+spec:
+  podSelector:
+    matchLabels:
+      app: backend
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: frontend
+      ports:
+        - port: 8080
+          protocol: TCP
+    - from:
+        - podSelector:
+            matchLabels:
+              app: prometheus
+      ports:
+        - port: 8080
+          protocol: TCP

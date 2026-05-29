@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-slate-950 text-white antialiased;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+    min-height: 100vh;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(34, 211, 238, 0.3);
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(34, 211, 238, 0.5);
+  }
+}
+
+@layer components {
+  .glass {
+    @apply bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl;
+  }
+  .glass-card {
+    @apply bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl;
+  }
+  .glass-input {
+    @apply bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-sentinel-400/50 focus:ring-1 focus:ring-sentinel-400/50 transition-all duration-300;
+  }
+  .btn-primary {
+    @apply bg-gradient-to-r from-sentinel-400 to-blue-500 text-white font-semibold py-3 px-6 rounded-xl hover:shadow-lg hover:shadow-sentinel-400/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-danger {
+    @apply bg-gradient-to-r from-red-500 to-rose-600 text-white font-semibold py-2 px-4 rounded-xl hover:shadow-lg hover:shadow-red-500/25 transition-all duration-300;
+  }
+  .btn-ghost {
+    @apply bg-white/5 border border-white/10 text-slate-300 hover:bg-white/10 hover:text-white font-medium py-2 px-4 rounded-xl transition-all duration-300;
+  }
+  .gradient-bg {
+    background: linear-gradient(-45deg, #0f172a, #1e293b, #0c4a6e, #164e63);
+    background-size: 400% 400%;
+    animation: gradient 15s ease infinite;
+  }
+}
